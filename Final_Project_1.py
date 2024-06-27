@@ -2,7 +2,6 @@
 #Final Project
 #DSA 5303
 
-
 #IMPORT LIBRARIES
 import pandas as pd
 import numpy as np
@@ -11,16 +10,21 @@ import matplotlib.pyplot as plt
 
 #The purpose of this application is to develop two programs for the following financial models: CAPM and Monte Carlo Simulation.
 
-
 #CAPITAL ASSET PRICING MODEL
 
 # importing the historical stock data BA The Boeing Company
 stock_data = yf.download('BA', start='2020-01-01', end='2024-01-01')
+#print(stock_data)
 # importing the historial market data ^GSPC S&P 500 Index
 market_data = yf.download('^GSPC', start='2020-01-01', end='2024-01-01')
-# Calculate the log daily returns for stock and market data
+#print(market_data)
+# Calculate the log daily returns for stock data
+#assign to new Column named Returns
 stock_data['Returns'] = np.log(stock_data['Adj Close']) - np.log(stock_data['Adj Close'].shift(1))
+# Calculate the log daily returns for market data
+#assign to new Column named Market Returns
 market_data['Market Returns'] = np.log(market_data['Adj Close']) - np.log(market_data['Adj Close'].shift(1))
+
 #plot log market returns
 plt.figure(figsize=(10,5))
 plt.plot(market_data)
@@ -35,10 +39,13 @@ plt.title('BA')
 plt.xlabel('Time (days)')
 plt.ylabel('Return')
 plt.show()
+
 #caclulate the expected rate of return for stock log returns
 expected_stock_ror = stock_data['Returns'].mean()
+#print(expected_stock_ror)
 #calculate the expected rate of return for market log returns
 expected_market_ror = market_data['Market Returns'].mean()
+#print(expected_market_ror)
 risk_free_rate = 5.5  #3 Month U.S. Treasury Bill Rate 5.5% risk-free rate as of 26 June 2024
 # create dataframe which contains both Stock and Market expected rates of return
 # drop na values to allow for covariance and variacne calculations
@@ -46,39 +53,45 @@ returns = pd.DataFrame({
     'Stock': stock_data['Returns'],
     'Market': market_data['Market Returns']
 }).dropna()
+#with pd.option_context('display.max_rows', None, 'display.max_columns', None): 
+#    print(returns)
 # create a covariance matrix from the returns dataframe
 cov_matrix = returns.cov()
+#print(cov_matrix)
 # retrieve the covariance between Stock and Market from the covariance matrix
 stock_market_cov = cov_matrix.loc['Stock', 'Market']
+#print(stock_market_cov)
 #caclulate the Market variance
 market_var = returns['Market'].var()
+#print(market_var)
 # using the covariance between Stock and Market, cacluate the beta value.
 beta = (stock_market_cov) / (market_var)
 print("The Beta of the stock is: ", beta)
 #Using the CAPM formula, calculate the expected rate of return of the stock
 expected_return_capm = risk_free_rate + beta * (expected_market_ror - risk_free_rate)
 #view result
-print(f"Expected Return based on CAPM: {expected_return_capm}")
+print(f"Expected Return based on CAPM:", expected_return_capm)
 
 
 #MONTE CARLO SIMULATION
-#https://www.researchgate.net/publication/358954203_Monte_Carlo_Simulation_Prediction_of_Stock_Prices
 
-# Parameters
+# PARAMETERS
+#intilize stock price using last price of historial stock data
 S0 = stock_data['Adj Close'][-1]
-T = 1  # Time period (1 year)
-N = 252  # Number of time steps (trading days)
-dt = T/N
-mu = expected_stock_ror
-sigma = stock_data['Returns'].std()
+T = 1  # Total time duration
+N = 252  # step increment
+dt = T/N # time increment
+mu = expected_stock_ror #pull expected stock rate of return
+sigma = stock_data['Returns'].std() #standard deviation of target stock returns
 
-# Simulation
+#Random seed forrandom number generator used for Z
 np.random.seed(42)
-simulations = 1000
-price_i = np.zeros((N, simulations))
+simulations = 1000 #number of simulations
+price_i = np.zeros((N, simulations)) #initialize array
+#insert initial value
 price_i[0] = S0
-price_i_mean = np.zeros(simulations)
-#calculate the price simulations
+price_i_mean = np.zeros(simulations) #initialize array
+#execute the price simulations
 for t in range(1, N):
     z = np.random.standard_normal(simulations)
     price_i[t] = price_i[t-1] * np.exp((mu - 0.5 * sigma**2) * dt + sigma * np.sqrt(dt) * z)    
@@ -119,7 +132,8 @@ final_prices = price_i.iloc[-1,:]
 mean_final_price = final_prices.mean()
 #cacluate forcasted expected rate of return using the simulated prices
 # Calculate the returns for each path
-print("Expected Rate of Return for Monte Carlo Simulation: ", ((final_prices - S0) / S0).mean())
+expected_return_monte = ((final_prices - S0) / S0).mean()
+print("Expected Rate of Return for Monte Carlo Simulation: ", expected_return_monte)
 #caculate the 97% confidence interval
 confidence_interval = np.percentile(final_prices, [3, 97])
 #print results
