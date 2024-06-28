@@ -70,7 +70,7 @@ print("The Beta of the stock is: ", beta)
 #Using the CAPM formula, calculate the expected rate of return of the stock
 expected_return_capm = risk_free_rate + beta * (expected_market_ror - risk_free_rate)
 #view result
-print(f"Expected Return based on CAPM:", expected_return_capm)
+print("Expected Return based on CAPM:", expected_return_capm)
 
 
 #MONTE CARLO SIMULATION
