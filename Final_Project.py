@@ -8,7 +8,7 @@ import numpy as np
 import yfinance as yf
 import matplotlib.pyplot as plt
 
-#The purpose of this application is to develop two programs for the following financial models: CAPM and Monte Carlo Simulation.
+#The purpose of this application is to develop two programs for the following financial models and analyze the results: CAPM and Monte Carlo Simulation.
 
 
 #CAPITAL ASSET PRICING MODEL
